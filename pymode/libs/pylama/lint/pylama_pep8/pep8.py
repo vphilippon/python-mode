@@ -346,10 +346,10 @@ def missing_whitespace(logical_line):
 
 def indentation(logical_line, previous_logical, indent_char,
                 indent_level, previous_indent_level):
-    r"""Use 4 spaces per indentation level.
+    r"""Use 2 spaces per indentation level.
 
     For really old code that you don't want to mess up, you can continue to
-    use 8-space tabs.
+    use 4-space tabs.
 
     Okay: a = 1
     Okay: if a == 0:\n    a = 1
@@ -366,8 +366,8 @@ def indentation(logical_line, previous_logical, indent_char,
     """
     c = 0 if logical_line else 3
     tmpl = "E11%d %s" if logical_line else "E11%d %s (comment)"
-    if indent_level % 4:
-        yield 0, tmpl % (1 + c, "indentation is not a multiple of four")
+    if indent_level % 2:
+        yield 0, tmpl % (1 + c, "indentation is not a multiple of two (Outbox)")
     indent_expect = previous_logical.endswith(':')
     if indent_expect and indent_level <= previous_indent_level:
         yield 0, tmpl % (2 + c, "expected an indented block")
@@ -409,13 +409,13 @@ def continued_indentation(logical_line, tokens, indent_level, hang_closing,
         return
 
     # indent_next tells us whether the next block is indented; assuming
-    # that it is indented by 4 spaces, then we should not allow 4-space
+    # that it is indented by 2 spaces, then we should not allow 2-space
     # indents on the final continuation line; in turn, some other
-    # indents are allowed to have an extra 4 spaces.
+    # indents are allowed to have an extra 2 spaces.
     indent_next = logical_line.endswith(':')
 
     row = depth = 0
-    valid_hangs = (4,) if indent_char != '\t' else (4, 8)
+    valid_hangs = (2,) if indent_char != '\t' else (2, 4)
     # remember how many brackets were opened on each line
     parens = [0] * nrows
     # relative indents of physical lines
@@ -478,7 +478,7 @@ def continued_indentation(logical_line, tokens, indent_level, hang_closing,
                     # visual indent is broken
                     yield (start, "E128 continuation line "
                            "under-indented for visual indent")
-            elif hanging_indent or (indent_next and rel_indent[row] == 8):
+            elif hanging_indent or (indent_next and rel_indent[row] == 4):
                 # hanging indent is verified
                 if close_bracket and not hang_closing:
                     yield (start, "E123 closing bracket does not match "
@@ -500,7 +500,7 @@ def continued_indentation(logical_line, tokens, indent_level, hang_closing,
                     error = "E131", "unaligned for hanging indent"
                 else:
                     hangs[depth] = hang
-                    if hang > 4:
+                    if hang > 2:
                         error = "E126", "over-indented for hanging indent"
                     else:
                         error = "E121", "under-indented for hanging indent"
@@ -563,8 +563,8 @@ def continued_indentation(logical_line, tokens, indent_level, hang_closing,
         if last_token_multiline:
             rel_indent[end[0] - first_row] = rel_indent[row]
 
-    if indent_next and expand_indent(line) == indent_level + 4:
-        pos = (start[0], indent[0] + 4)
+    if indent_next and expand_indent(line) == indent_level + 2:
+        pos = (start[0], indent[0] + 2)
         if visual_indent:
             code = "E129 visually indented line"
         else:
@@ -1082,23 +1082,23 @@ noqa = re.compile(r'# no(?:qa|pep8)\b', re.I).search
 def expand_indent(line):
     r"""Return the amount of indentation.
 
-    Tabs are expanded to the next multiple of 8.
+    Tabs are expanded to the next multiple of 4.
 
-    >>> expand_indent('    ')
-    4
+    >>> expand_indent('  ')
+    2
     >>> expand_indent('\t')
+    4
+    >>> expand_indent('   \t')
+    4
+    >>> expand_indent('    \t')
     8
-    >>> expand_indent('       \t')
-    8
-    >>> expand_indent('        \t')
-    16
     """
     if '\t' not in line:
         return len(line) - len(line.lstrip())
     result = 0
     for char in line:
         if char == '\t':
-            result = result // 8 * 8 + 8
+            result = result // 4 * 4 + 4
         elif char == ' ':
             result += 1
         else:
