@@ -88,7 +88,7 @@ SHORTEN_OPERATOR_GROUPS = frozenset([
 
 
 DEFAULT_IGNORE = 'E24'
-DEFAULT_INDENT_SIZE = 4
+DEFAULT_INDENT_SIZE = 2  # Outbox 2 spaces temp fix
 
 
 # W602 is handled separately due to the need to avoid "with_traceback".
