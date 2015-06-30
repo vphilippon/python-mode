@@ -108,7 +108,7 @@ function! s:SearchParensPair() " {{{
     let col = col('.')
 
     " Skip strings and comments and don't look too far
-    let skip = "line('.') < " . (line - 50) . " ? dummy :" .
+    let skip = "line('.') < " . (line - 150) . " ? dummy :" .
                 \ 'synIDattr(synID(line("."), col("."), 0), "name") =~? ' .
                 \ '"string\\|comment"'
 
